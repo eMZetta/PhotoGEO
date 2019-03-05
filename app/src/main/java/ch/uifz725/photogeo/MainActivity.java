@@ -3,7 +3,6 @@ package ch.uifz725.photogeo;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -17,7 +16,6 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,7 +25,7 @@ import java.util.Date;
 public class MainActivity extends AppCompatActivity {
 
     static final int REQUEST_TAKE_PICTURE = 2;
-    static final int REQUEST_IMAGE_CAPTURE = 1;
+    static final int REQUEST_PICTURE_CAPTURE = 1;
     ImageView pictureView;
     String currentPicturePath;
 
@@ -68,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
                     Snackbar.make(view, "Ihr Gerät hat keine Kamera", Snackbar.LENGTH_LONG)
                             .setAction("Action", null).show();
                 }
-                takePicture(view);
+                takePictureIntent(view);
             }
         });
     }
@@ -82,15 +80,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Methode startet die Kamera, und speichert das Foto in die URI)
+     * Methode startet die Kamera, und speichert das Foto in die URI
      * @param view
      */
-    private void takePicture(View view) {
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+    private void takePictureIntent(View view) {
+       Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
         if (takePictureIntent.resolveActivity(getPackageManager()) !=null){
             File pictureFile = null;
-            try{pictureFile = createImageFile();
+            try{
+                pictureFile = createImageFile();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -99,20 +98,10 @@ public class MainActivity extends AppCompatActivity {
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, pictureURI);
                 startActivityForResult(takePictureIntent, REQUEST_TAKE_PICTURE);
             }
-
-
+            // BUGFIX
+            // startActivityForResult(takePictureIntent, REQUEST_PICTURE_CAPTURE);
         }
-        startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
-    }
 
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK){
-            Bundle extras = data.getExtras();
-            Bitmap pictureBitmap = (Bitmap) extras.get("data");
-            pictureView.setImageBitmap(pictureBitmap);
-        }
     }
 
     private File createImageFile() throws IOException {
@@ -122,8 +111,19 @@ public class MainActivity extends AppCompatActivity {
         File picture = File.createTempFile(pictureFileName,".jpg",storageDir);
 
         currentPicturePath = "file:" +picture.getAbsolutePath();
-        return picture;
+        return picture;}
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_PICTURE_CAPTURE && resultCode == RESULT_OK){
+            Bundle extras = data.getExtras(); //null
+            Bitmap pictureBitmap = (Bitmap) extras.get("data");
+            pictureView.setImageBitmap(pictureBitmap);
+        }
     }
+
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
