@@ -41,4 +41,18 @@
         app:backgroundTint="@android:color/darker_gray"
         app:srcCompat="@android:drawable/ic_menu_sort_by_size" />
 
+    <ImageView
+        android:id="@+id/pictureView"
+        android:layout_width="@dimen/thumbnail"
+        android:layout_height="@dimen/thumbnail"
+        android:paddingTop="@android:dimen/notification_large_icon_height"
+        tools:srcCompat="@tools:sample/backgrounds/scenic" />
+
+    <Button
+        android:id="@+id/locationBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="Button" />
+
 </android.support.design.widget.CoordinatorLayout>
