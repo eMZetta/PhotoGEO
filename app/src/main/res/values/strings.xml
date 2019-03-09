@@ -1,4 +1,8 @@
 <resources>
     <string name="app_name">PhotoGEO</string>
     <string name="title_activity_main2">Main2Activity</string>
+    <string name="preview">Vorschau</string>
+    <string name="name">Bildname</string>
+    <string name="coordinates">Koordinaten</string>
+
 </resources>
