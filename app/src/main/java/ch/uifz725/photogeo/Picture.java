@@ -1,20 +1,21 @@
 package ch.uifz725.photogeo;
 
-import android.arch.persistence.room.ColumnInfo;
-import android.arch.persistence.room.Entity;
-import android.arch.persistence.room.PrimaryKey;
+/**
+ * Created by eMZetta March 2019.
+ */
 
-import java.io.Serializable;
-
-@Entity(tableName = "pictures")
-public class Picture implements Serializable {
-
-    @PrimaryKey(autoGenerate = true)
-    @ColumnInfo(name = "pictureid")
+public class Picture {
     private int id;
+    private String name;
+    private String location;
+    private byte[] image;
 
-    private String pictureName;
-    private String description;
+    public Picture(String name, String location, byte[] image, int id) {
+        this.name = name;
+        this.location = location;
+        this.image = image;
+        this.id = id;
+    }
 
     public int getId() {
         return id;
@@ -24,19 +25,27 @@ public class Picture implements Serializable {
         this.id = id;
     }
 
-    public String getPictureName() {
-        return pictureName;
+    public String getName() {
+        return name;
     }
 
-    public void setPictureName(String pictureName) {
-        this.pictureName = pictureName;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public String getDescription() {
-        return description;
+    public String getLocation() {
+        return location;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public byte[] getImage() {
+        return image;
+    }
+
+    public void setImage(byte[] image) {
+        this.image = image;
     }
 }
