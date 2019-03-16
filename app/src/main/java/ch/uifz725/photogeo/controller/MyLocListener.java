@@ -1,18 +1,19 @@
-package ch.uifz725.photogeo;
+package ch.uifz725.photogeo.controller;
 
 import android.location.Location;
 import android.location.LocationListener;
 import android.os.Bundle;
 
 /**
+ * Die Klasse stellt die aktuelle Location in Längen- und Breitengrad als Double zur Verfügung
  * Created by eMZetta March 2019.
  */
 
 
 public class MyLocListener implements LocationListener {
 
-    Double langitude;
-    Double longitude;
+    Double langitude; //Längengrad
+    Double longitude; //Breitengrad
 
     public Double getLangitude() {
         return langitude;

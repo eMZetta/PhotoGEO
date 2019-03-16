@@ -1,6 +1,7 @@
-package ch.uifz725.photogeo;
+package ch.uifz725.photogeo.model;
 
 /**
+ * Modelklasse, welche die Bilder repräsentiert
  * Created by eMZetta March 2019.
  */
 

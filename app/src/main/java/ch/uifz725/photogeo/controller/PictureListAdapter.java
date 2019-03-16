@@ -1,4 +1,4 @@
-package ch.uifz725.photogeo;
+package ch.uifz725.photogeo.controller;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -12,7 +12,11 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
+import ch.uifz725.photogeo.R;
+import ch.uifz725.photogeo.model.Picture;
+
 /**
+ * Die Klasse erstellt Thumbnails zur Anzeige von Fotos
  * Created by eMZetta March 2019.
  */
 

@@ -1,4 +1,4 @@
-package ch.uifz725.photogeo;
+package ch.uifz725.photogeo.view;
 
 import android.app.Activity;
 import android.app.Dialog;
@@ -19,7 +19,12 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 
+import ch.uifz725.photogeo.model.Picture;
+import ch.uifz725.photogeo.controller.PictureListAdapter;
+import ch.uifz725.photogeo.R;
+
 /**
+ * Die Aktivität listet die gespeicherten Fotos in einer GridView
  * Created by eMZetta March 2019.
  */
 
@@ -34,14 +39,14 @@ public class PictureListActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.picture_list_activity);
+        setContentView(R.layout.activity_picture_list);
 
         gridView = (GridView) findViewById(R.id.gridView);
         list = new ArrayList<>();
-        adapter = new PictureListAdapter(this, R.layout.picture_items, list);
+        adapter = new PictureListAdapter(this, R.layout.activity_picture_items, list);
         gridView.setAdapter(adapter);
 
-        // get all data from sqlite
+        // holt alle Daten aus SQLite-Datenbank
         Cursor cursor = MainActivity.sqLiteHelper.getData("SELECT * FROM PICTURES");
         list.clear();
         while (cursor.moveToNext()) {
@@ -58,7 +63,8 @@ public class PictureListActivity extends AppCompatActivity {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, final long id) {
 
-                CharSequence[] items = {"Anzeigen", "Löschen"};
+
+                CharSequence[] items = {"Anzeigen"};
                 AlertDialog.Builder dialog = new AlertDialog.Builder(PictureListActivity.this);
 
                 dialog.setTitle("Bitte wählen");
@@ -66,23 +72,23 @@ public class PictureListActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int item) {
                         if (item == 0) {
-                            // update
+                            // Anzeigen
                             Cursor c = MainActivity.sqLiteHelper.getData("SELECT id FROM PICTURES");
                             ArrayList<Integer> arrID = new ArrayList<Integer>();
                             while (c.moveToNext()){
                                 arrID.add(c.getInt(0));
                             }
                             // show dialog update at here
-                            showDialogUpdate(PictureListActivity.this, arrID.get(position));
+                            showDialogAnzeigen(PictureListActivity.this, arrID.get(position));
 
                         } else {
-                            // delete
+                            // Löschen, noch nicht vollständig implementiert
                             Cursor c = MainActivity.sqLiteHelper.getData("SELECT id FROM PICTURES");
                             ArrayList<Integer> arrID = new ArrayList<Integer>();
                             while (c.moveToNext()){
                                 arrID.add(c.getInt(0));
                             }
-                            showDialogDelete(arrID.get(position));
+                            showDialogLoeschen(arrID.get(position));
                         }
                     }
                 });
@@ -93,11 +99,16 @@ public class PictureListActivity extends AppCompatActivity {
     }
 
 
-    private void showDialogUpdate(Activity activity, int position){
+    /**
+     * Foto wird vergrössert dargestellt
+     * @param activity
+     * @param position
+     */
+    private void showDialogAnzeigen(Activity activity, int position){
 
 
         final Dialog dialog = new Dialog(activity);
-        dialog.setContentView(R.layout.show_picture_activity);
+        dialog.setContentView(R.layout.activity_picture_activity);
 
         imageViewPic = (ImageView) dialog.findViewById(R.id.imageViewPic);
 
@@ -110,7 +121,7 @@ public class PictureListActivity extends AppCompatActivity {
         dialog.show();
 
 
-        Picture picture = list.get(position);
+        Picture picture = list.get(position-1);
         byte[] image = picture.getImage();
         Bitmap bitmap = BitmapFactory.decodeByteArray(image, 0, image.length);
         imageViewPic.setImageBitmap(bitmap);
@@ -122,7 +133,12 @@ public class PictureListActivity extends AppCompatActivity {
 
     }
 
-    private void showDialogDelete(final int idPicture){
+    /**
+     * Nachfragen, ob das Foto wirklich gelöscht werden soll
+     * Kann später für die Implementation einer Löschfunktion gebraucht werden.
+     * @param idPicture
+     */
+    private void showDialogLoeschen(final int idPicture){
         final AlertDialog.Builder dialogDelete = new AlertDialog.Builder(PictureListActivity.this);
 
         dialogDelete.setTitle("Achtung!!");
@@ -149,8 +165,12 @@ public class PictureListActivity extends AppCompatActivity {
         dialogDelete.show();
     }
 
+    /**
+     * Aktualisiert die Liste mit den Fotos (nach dem Löschen)
+     * Kann später für die Implementation einer Löschfunktion gebraucht werden.
+     */
     private void updatePictureList(){
-        // get all data from sqlite
+        // holt alle Daten aus der SQLite-Datenbank
         Cursor cursor = MainActivity.sqLiteHelper.getData("SELECT * FROM PICTURES");
         list.clear();
         while (cursor.moveToNext()) {

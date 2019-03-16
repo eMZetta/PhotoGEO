@@ -1,4 +1,4 @@
-package ch.uifz725.photogeo;
+package ch.uifz725.photogeo.view;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -26,10 +26,23 @@ import android.widget.Toast;
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.GregorianCalendar;
+
+import ch.uifz725.photogeo.controller.MyLocListener;
+import ch.uifz725.photogeo.R;
+import ch.uifz725.photogeo.controller.SQLiteHelper;
 
 public class MainActivity extends AppCompatActivity {
 
 /**
+ * Die Aktivität bildet den Startpunkt der Applikation.
+ * Es können Bilder mit der Kamera geschossen werden.
+ * Es kann eine Liste aller geschossenen Bilder angezeigt werden.
+ * Es kann ein Name für das geschossene Bild vergeben werden.
+ * Geschossene Bilder können gespeichert werden.
  * Created by eMZetta March 2019.
  */
 
@@ -37,12 +50,12 @@ public class MainActivity extends AppCompatActivity {
     TextView tvLocation;
     FloatingActionButton btnList;
     FloatingActionButton btnTakePic;
-    Button btnAdd;
+    Button btnSave;
     ImageView pictureView;
     MyLocListener loc;
 
-    private String longitude;
-    private String latitude;
+    private String longitude; //Längengrad
+    private String latitude; //Breitengrad
     private String location;
 
     Bitmap thumbnail;
@@ -53,16 +66,29 @@ public class MainActivity extends AppCompatActivity {
 
     public static SQLiteHelper sqLiteHelper;
 
+    GregorianCalendar now;
+    DateFormat df;
+
+    /**
+    Felder werden initialisiert.
+    OnClickListener werden auf Buttons gelegt.
+    Datenbank wird aufgerufen.
+    Die Rechte für das GPS und die Kamera werden gesetzt.
+     */
     @SuppressLint("MissingPermission")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        now = new GregorianCalendar();
+        df = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.LONG);
+
+
         edtName = (EditText) findViewById(R.id.edtName);
         tvLocation = (TextView) findViewById(R.id.tvLocation);
         btnTakePic = (FloatingActionButton) findViewById(R.id.btnTakePic);
-        btnAdd = (Button) findViewById(R.id.btnAdd);
+        btnSave = (Button) findViewById(R.id.btnSave);
         btnList = (FloatingActionButton) findViewById(R.id.btnList);
         pictureView = (ImageView) findViewById(R.id.pictureView);
 
@@ -83,11 +109,12 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
-
+        // GPS einrichten
         LocationManager myManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
         loc = new MyLocListener();
         myManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, loc);
 
+        // Zugriff auf Kamera prüfen
         if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             pictureView.setEnabled(false);
             ActivityCompat.requestPermissions(MainActivity.this, new String[] { Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE }, 0);
@@ -96,47 +123,45 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
-        // Here, thisActivity is the current activity
+        // Aktuelle Acitivity
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
-            // Permission is not granted
-            // Should we show an explanation?
+
             if (ActivityCompat.shouldShowRequestPermissionRationale(this,
                     Manifest.permission.ACCESS_FINE_LOCATION)) {
-                // Show an explanation to the user *asynchronously* -- don't block
-                // this thread waiting for the user's response! After the user
-                // sees the explanation, try again to request the permission.
+
             } else {
-                // No explanation needed; request the permission
+
                 ActivityCompat.requestPermissions(this,
                         new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1
                 );
 
-                // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
-                // app-defined int constant. The callback method gets the
-                // result of the request.
             }
         } else {
-            // Permission has already been granted
+            // Rechte wurden bereits erteilt
         }
 
-        btnAdd.setOnClickListener(new View.OnClickListener() {
+        btnSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if(pictureView.getDrawable() == null){
+                    Toast.makeText(getApplicationContext(), "Bitte mache zuerst ein Foto!", Toast.LENGTH_SHORT).show();
+                }
                 try{
                     sqLiteHelper.insertData(
                             edtName.getText().toString().trim(),
                             tvLocation.getText().toString().trim(),
                             imageViewToByte(pictureView)
                     );
-                    Toast.makeText(getApplicationContext(), "Bild wurde zur Datenbank hinzugefügt!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "Bild wurde zur DB hinzugefügt!", Toast.LENGTH_SHORT).show();
                     edtName.setText("");
                     tvLocation.setText("");
                 }
                 catch (Exception e){
                     e.printStackTrace();
                 }
+                pictureView.setImageBitmap(null);
             }
         });
 
@@ -149,6 +174,11 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Aus einer ImageView wird ein Bild zu einem byteArray konvertiert.
+     * @param image
+     * @return
+     */
     public static byte[] imageViewToByte(ImageView image) {
         Bitmap bitmap = ((BitmapDrawable)image.getDrawable()).getBitmap();
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
@@ -182,9 +212,6 @@ public class MainActivity extends AppCompatActivity {
                     final Uri imageUri = data.getData();
                     final InputStream imageStream = getContentResolver().openInputStream(imageUri);
                     final Bitmap selectedImage = BitmapFactory.decodeStream(imageStream);
-                    //set Progress Bar
-                    //setProgressBar();
-                    //set profile picture form gallery
                     pictureView.setImageBitmap(selectedImage);
 
 
@@ -202,23 +229,29 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    /**
+     * Thumbnail wird gesetzt.
+     * Längen- und Breitengrad wird geschrieben.
+     * Aktuelle Zeit wird geschrieben.
+     * @param data
+     */
     private void onCaptureImageResult(Intent data) {
+
+        String time = df.format(now.getTime());
 
         longitude = "";
         latitude = "";
         thumbnail = (Bitmap) data.getExtras().get("data");
 
-        //set Progress Bar
-        //setProgressBar();
-        //set profile picture form camera
-        pictureView.setMaxWidth(200);
+        pictureView.setMaxWidth(400);
         pictureView.setImageBitmap(thumbnail);
 
         longitude =  longitude +loc.getLongitude();
         latitude = latitude +loc.getLangitude();
 
         location = "Breitengrad: " + latitude + "\n" +
-                "Längengrad: " + longitude;
+                "Längengrad: " + longitude + "\n" +
+                "Zeit: " + time;
         tvLocation.setText(location);
 
     }
